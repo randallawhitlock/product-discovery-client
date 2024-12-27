@@ -1,19 +1,24 @@
+// src\app\admin\posts\new\page.tsx
 'use client';
 
 import React from 'react';
-import AdminLayout from '@/components/admin/layout/AdminLayout';
+import AdminLayout from '@/app/admin/layout';
 import BlogPostForm from '@/components/admin/forms/BlogPostForm';
 import { useRouter } from 'next/navigation';
+import { useAuth }  from '@/hooks/useAuthToken';
+import { BlogPostFormData } from '@/types/blog';
 
 const AdminNewBlogPostPage: React.FC = () => {
   const router = useRouter();
+  const { token } = useAuth();
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: BlogPostFormData) => {
     try {
-      const response = await fetch('/api/blog', { // Or your backend API route
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blog`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -21,7 +26,9 @@ const AdminNewBlogPostPage: React.FC = () => {
       if (response.ok) {
         router.push('/admin/posts');
       } else {
-        console.error('Failed to save blog post');
+        // Consider showing a user-friendly error message
+        const errorData = await response.json();
+        console.error('Failed to save blog post', errorData);
       }
     } catch (error) {
       console.error('Error saving blog post:', error);

@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+// src\hooks\useBlogPosts.ts
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 
 interface BlogPost {
   _id: string;
@@ -8,7 +9,7 @@ interface BlogPost {
   summary: string;
   author: {
     _id: string;
-    username: string;
+    email: string;
     profile: {
       avatar: string;
     };
@@ -31,9 +32,13 @@ interface BlogPostsResponse {
   pagination: Pagination;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-const fetchBlogPosts = async (page: number, limit: number, status: string) => {
+const fetchBlogPosts = async (
+  page: number,
+  limit: number,
+  status: string
+): Promise<BlogPostsResponse> => {
   const { data } = await axios.get<BlogPostsResponse>(
     `${API_URL}/blog?page=${page}&limit=${limit}&status=${status}`
   );
@@ -42,7 +47,8 @@ const fetchBlogPosts = async (page: number, limit: number, status: string) => {
 
 export const useBlogPosts = (page: number, limit: number, status: string) => {
   return useQuery({
-    queryKey: ["blogPosts", page, limit, status],
+    queryKey: ['blogPosts', page, limit, status],
     queryFn: () => fetchBlogPosts(page, limit, status),
+    keepPreviousData: true,
   });
 };
