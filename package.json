@@ -9,30 +9,41 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-alert-dialog": "^1.1.4",
     "@tanstack/react-query": "^5.62.10",
+    "@tanstack/react-query-devtools": "^5.62.10",
     "axios": "^1.7.9",
+    "class-variance-authority": "^0.7.1",
     "draft-js": "^0.11.7",
     "draft-js-export-html": "^1.4.1",
     "draft-js-import-html": "^1.4.1",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.469.0",
     "next": "15.1.2",
     "react": "^19.0.0",
     "react-content-loader": "^7.0.2",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "react-toastify": "^11.0.2",
     "showdown": "^2.1.0",
     "slate": "^0.112.0",
-    "slate-react": "^0.112.0"
+    "slate-react": "^0.112.0",
+    "zod": "^3.24.1",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/draft-js": "^0.11.18",
+    "@types/jwt-decode": "^2.2.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "clsx": "^2.1.1",
     "eslint": "^9",
     "eslint-config-next": "15.1.2",
     "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }
 }
