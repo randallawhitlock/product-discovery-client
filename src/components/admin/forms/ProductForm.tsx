@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { AlertCircle } from "lucide-react";
+import React, { useState } from 'react';
+import { AlertCircle } from 'lucide-react';
 
 interface ProductFormData {
   name: string;
@@ -18,17 +18,28 @@ interface ProductFormProps {
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit }) => {
-  const [formData, setFormData] = useState<ProductFormData>({
-    name: initialData?.name || "",
-    description: initialData?.description || "",
-    price: initialData?.price || "",
-    category: initialData?.category || "",
-    imageUrl: initialData?.imageUrl || "",
-    inStock: initialData?.inStock ?? true,
-  });
+  const [formData, setFormData] = useState<ProductFormData>(
+    initialData
+      ? {
+          name: initialData.name || '',
+          description: initialData.description || '',
+          price: initialData.price || '',
+          category: initialData.category || '',
+          imageUrl: initialData.imageUrl || '',
+          inStock: initialData.inStock ?? true,
+        }
+      : {
+          name: '',
+          description: '',
+          price: '',
+          category: '',
+          imageUrl: '',
+          inStock: true,
+        }
+  );
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
@@ -37,33 +48,31 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit }) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setError('');
+    setSuccess('');
     setIsSubmitting(true);
 
     try {
       await onSubmit(formData);
-      setSuccess("Product saved successfully!");
-
-      // If this is a new product, reset the form
+      setSuccess('Product saved successfully!');
       if (!initialData) {
         setFormData({
-          name: "",
-          description: "",
-          price: "",
-          category: "",
-          imageUrl: "",
+          name: '',
+          description: '',
+          price: '',
+          category: '',
+          imageUrl: '',
           inStock: true,
         });
       }
     } catch (err: any) {
-      setError(err.message || "An error occurred while saving the product");
+      setError(err.message || 'An error occurred while saving the product');
     } finally {
       setIsSubmitting(false);
     }
@@ -72,23 +81,23 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow"
+      className="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
     >
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 flex items-center">
+        <div className="mb-4 p-4 bg-red-100 dark:bg-red-700 border-l-4 border-red-500 text-red-700 dark:text-red-100 flex items-center">
           <AlertCircle className="w-5 h-5 mr-2" />
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-500 text-green-700">
+        <div className="mb-4 p-4 bg-green-100 dark:bg-green-700 border-l-4 border-green-500 text-green-700 dark:text-green-100">
           {success}
         </div>
       )}
 
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Product Name
           </label>
           <input
@@ -96,14 +105,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit }) => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md 
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Description
           </label>
           <textarea
@@ -111,15 +119,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit }) => {
             value={formData.description}
             onChange={handleChange}
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md 
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Price
             </label>
             <input
@@ -129,14 +136,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit }) => {
               onChange={handleChange}
               step="0.01"
               min="0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md 
-                         focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Category
             </label>
             <input
@@ -144,15 +150,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit }) => {
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md 
-                         focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Image URL
           </label>
           <input
@@ -160,8 +165,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit }) => {
             name="imageUrl"
             value={formData.imageUrl}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md 
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             required
           />
         </div>
@@ -172,10 +176,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit }) => {
             name="inStock"
             checked={formData.inStock}
             onChange={handleChange}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 
-                       border-gray-300 rounded"
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded dark:bg-gray-700 dark:border-gray-600"
           />
-          <label className="ml-2 block text-sm text-gray-700">
+          <label className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
             In Stock
           </label>
         </div>
@@ -184,14 +187,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit }) => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md 
-                       hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
             {isSubmitting
-              ? "Saving..."
+              ? 'Saving...'
               : initialData
-              ? "Update Product"
-              : "Add Product"}
+              ? 'Update Product'
+              : 'Add Product'}
           </button>
         </div>
       </div>

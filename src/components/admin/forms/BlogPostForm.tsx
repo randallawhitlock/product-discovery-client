@@ -1,262 +1,255 @@
-'use client';
+import React from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@zod/resolver';
+import { z } from 'zod';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from '@/components/ui/AlertDialog';
 
-import React, { useState } from 'react';
-import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+const blogPostSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters').max(100),
+  content: z.string().min(10, 'Content must be at least 10 characters'),
+  summary: z.string().min(10, 'Summary must be at least 10 characters'),
+  coverImage: z.string().url('Must be a valid URL'),
+  tags: z.array(z.string()).optional(),
+  status: z.enum(['draft', 'published', 'archived']).optional(),
+});
 
-interface BlogPostFormData {
-  title: string;
-  content: string;
-  excerpt: string;
-  coverImage: string;
-  tags: string;
-  status: 'draft' | 'published' | 'archived';
-}
+export type BlogPostFormData = z.infer<typeof blogPostSchema>;
 
 interface BlogPostFormProps {
-  initialData?: Partial<BlogPostFormData>;
+  initialData?: BlogPostFormData;
   onSubmit: (data: BlogPostFormData) => Promise<void>;
 }
 
-const BlogPostForm: React.FC<BlogPostFormProps> = ({
-  initialData,
-  onSubmit,
-}) => {
-  const [formData, setFormData] = useState<BlogPostFormData>({
-    title: initialData?.title || '',
-    content: initialData?.content || '',
-    excerpt: initialData?.excerpt || '',
-    coverImage: initialData?.coverImage || '',
-    tags: initialData?.tags?.split(', ').join(', ') || '',
-    status: initialData?.status || 'draft',
+const BlogPostForm: React.FC<BlogPostFormProps> = ({ initialData, onSubmit }) => {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<BlogPostFormData>({
+    resolver: zodResolver(blogPostSchema),
+    defaultValues: initialData,
   });
 
-  const [error, setError] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showPreview, setShowPreview] = useState<boolean>(false);
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSaveAsDraft = async () => {
-    setFormData((prev) => ({ ...prev, status: 'draft' }));
-    handleSubmit();
-  };
-
-  const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>) => {
-    if (e) {
-      e.preventDefault();
-    }
-    setError('');
-    setIsSubmitting(true);
-
+  const onFormSubmit = async (data: BlogPostFormData) => {
     try {
-      const processedData: BlogPostFormData = {
-        ...formData,
-        tags: formData.tags
-          .split(',')
-          .map((tag) => tag.trim())
-          .filter(Boolean)
-          .join(', '),
-      };
-
-      await onSubmit(processedData);
-
-      if (!initialData) {
-        setFormData({
-          title: '',
-          content: '',
-          excerpt: '',
-          coverImage: '',
-          tags: '',
-          status: 'draft',
-        });
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while saving the blog post');
-    } finally {
-      setIsSubmitting(false);
+      await onSubmit(data);
+      reset();
+    } catch (error) {
+      console.error('Form submission error:', error);
+      // Consider showing a toast notification or alert
     }
   };
-
-  const PreviewContent: React.FC = () => (
-    <div className="prose max-w-none">
-      <h1>{formData.title}</h1>
-      {formData.coverImage && (
-        <img
-          src={formData.coverImage}
-          alt={formData.title}
-          className="w-full h-64 object-cover rounded-lg mb-6"
-        />
-      )}
-      <p className="text-gray-600 italic">{formData.excerpt}</p>
-      <div className="mt-4 whitespace-pre-wrap">{formData.content}</div>
-      <div className="mt-4">
-        {formData.tags.split(',').map((tag, index) => (
-          <span
-            key={index}
-            className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2"
-          >
-            {tag.trim()}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="flex justify-end mb-4">
-        <button
-          type="button"
-          onClick={() => setShowPreview(!showPreview)}
-          className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
+      <div>
+        <label
+          htmlFor="title"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
-          {showPreview ? (
-            <>
-              <EyeOff className="w-4 h-4 mr-2" />
-              Hide Preview
-            </>
-          ) : (
-            <>
-              <Eye className="w-4 h-4 mr-2" />
-              Show Preview
-            </>
+          Title
+        </label>
+        <Controller
+          name="title"
+          control={control}
+          render={({ field }) => (
+            <input
+              id="title"
+              type="text"
+              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white
+                ${errors.title ? 'border-red-500 dark:border-red-500' : ''}`}
+              {...field}
+            />
           )}
-        </button>
+        />
+        {errors.title && (
+          <AlertDialog>
+            <AlertDialogContent>
+              <AlertDialogTitle>Error</AlertDialogTitle>
+              <AlertDialogDescription>{errors.title.message}</AlertDialogDescription>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Ok</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
-      {showPreview ? (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <PreviewContent />
-        </div>
-      ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-6 rounded-lg shadow"
+      <div>
+        <label
+          htmlFor="content"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 flex items-center">
-              <AlertCircle className="w-5 h-5 mr-2" />
-              <span>{error}</span>
-            </div>
+          Content
+        </label>
+        <Controller
+          name="content"
+          control={control}
+          render={({ field }) => (
+            <textarea
+              id="content"
+              rows={5}
+              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white
+                ${errors.content ? 'border-red-500 dark:border-red-500' : ''}`}
+              {...field}
+            />
           )}
+        />
+        {errors.content && (
+          <AlertDialog>
+            <AlertDialogContent>
+              <AlertDialogTitle>Error</AlertDialogTitle>
+              <AlertDialogDescription>{errors.content.message}</AlertDialogDescription>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Ok</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
 
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+      <div>
+        <label
+          htmlFor="summary"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Summary
+        </label>
+        <Controller
+          name="summary"
+          control={control}
+          render={({ field }) => (
+            <textarea
+              id="summary"
+              rows={3}
+              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white
+                ${errors.summary ? 'border-red-500 dark:border-red-500' : ''}`}
+              {...field}
+            />
+          )}
+        />
+        {errors.summary && (
+          <AlertDialog>
+            <AlertDialogContent>
+              <AlertDialogTitle>Error</AlertDialogTitle>
+              <AlertDialogDescription>{errors.summary.message}</AlertDialogDescription>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Ok</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Excerpt
-              </label>
-              <textarea
-                name="excerpt"
-                value={formData.excerpt}
-                onChange={handleChange}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+      <div>
+        <label
+          htmlFor="coverImage"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Cover Image URL
+        </label>
+        <Controller
+          name="coverImage"
+          control={control}
+          render={({ field }) => (
+            <input
+              id="coverImage"
+              type="url"
+              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white
+                ${errors.coverImage ? 'border-red-500 dark:border-red-500' : ''}`}
+              {...field}
+            />
+          )}
+        />
+        {errors.coverImage && (
+          <AlertDialog>
+            <AlertDialogContent>
+              <AlertDialogTitle>Error</AlertDialogTitle>
+              <AlertDialogDescription>{errors.coverImage.message}</AlertDialogDescription>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Ok</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Content
-              </label>
-              <textarea
-                name="content"
-                value={formData.content}
-                onChange={handleChange}
-                rows={12}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-                required
-              />
-            </div>
+      <div>
+        <label
+          htmlFor="tags"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Tags (comma separated)
+        </label>
+        <Controller
+          name="tags"
+          control={control}
+          render={({ field }) => (
+            <input
+              id="tags"
+              type="text"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              {...field}
+              // Consider handling tag input more dynamically
+            />
+          )}
+        />
+        {/* Tag errors can be complex to display, consider custom handling */}
+      </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cover Image URL
-              </label>
-              <input
-                type="url"
-                name="coverImage"
-                value={formData.coverImage}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+      <div>
+        <label
+          htmlFor="status"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Status
+        </label>
+        <Controller
+          name="status"
+          control={control}
+          render={({ field }) => (
+            <select
+              id="status"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              {...field}
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
+            </select>
+          )}
+        />
+        {errors.status && (
+          <AlertDialog>
+            <AlertDialogContent>
+              <AlertDialogTitle>Error</AlertDialogTitle>
+              <AlertDialogDescription>{errors.status.message}</AlertDialogDescription>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Ok</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tags (comma-separated)
-              </label>
-              <input
-                type="text"
-                name="tags"
-                value={formData.tags}
-                onChange={handleChange}
-                placeholder="tech, news, tutorial"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="archived">Archived</option>
-              </select>
-            </div>
-
-            <div className="flex justify-end space-x-4">
-              <button
-                type="button"
-                onClick={handleSaveAsDraft}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Save as Draft
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? 'Publishing...' : 'Publish Post'}
-              </button>
-            </div>
-          </div>
-        </form>
-      )}
-    </div>
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          Save
+        </button>
+      </div>
+    </form>
   );
 };
 

@@ -1,32 +1,34 @@
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+// src\hooks\useUsers.ts
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  UseQueryOptions,
+} from '@tanstack/react-query';
+import axios from 'axios';
+import { User } from '@/types/user'; // Import the User type
 
-interface UserProfile {
-  bio: string;
-  avatar: string;
-  social: {
-    twitter?: string;
-    linkedin?: string;
-    website?: string;
-  };
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-  role: "user" | "admin";
-  wishlist: string[]; 
-  profile: UserProfile;
-  isActive: boolean;
-  lastLogin: string;
-  createdAt: string;
-  updatedAt: string;
-}
+const fetchUsers = async (token: string): Promise<User[]> => {
+  const { data } = await axios.get<User[]>(`${API_URL}/users`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return data;
+};
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+export const useUsers = (token?: string, options?: UseQueryOptions<User[]>) => {
+  return useQuery({
+    queryKey: ['users'],
+    queryFn: () => fetchUsers(token!),
+    enabled: !!token,
+    ...options,
+  });
+};
 
-const fetchUser = async (userId: string, token: string) => {
+const fetchUser = async (userId: string, token: string): Promise<User> => {
   const { data } = await axios.get<User>(`${API_URL}/users/${userId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -35,10 +37,43 @@ const fetchUser = async (userId: string, token: string) => {
   return data;
 };
 
-export const useUser = (userId: string, token: string) => {
+export const useUser = (userId: string, token?: string) => {
   return useQuery({
-    queryKey: ["user", userId],
-    queryFn: () => fetchUser(userId, token),
-    enabled: !!token  && !!userId,
+    queryKey: ['user', userId],
+    queryFn: () => fetchUser(userId, token!),
+    enabled: !!token && !!userId,
+  });
+};
+
+const updateUsers = async (
+  userId: string,
+  userData: Partial<User>,
+  token: string
+): Promise<User> => {
+  const { data } = await axios.patch<User>(
+    `${API_URL}/users/${userId}`,
+    userData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return data;
+};
+
+export const useUpdateUser = (userId: string, token?: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userData: Partial<User>) =>
+      updateUsers(userId, userData, token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user', userId] });
+    },
+    onError: (error) => {
+      console.error('Failed to update user:', error);
+    },
   });
 };
