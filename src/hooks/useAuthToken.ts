@@ -4,71 +4,73 @@ import { AuthState } from '@/types/user';
 import { jwtDecode } from 'jwt-decode';
 
 interface AuthStore extends AuthState {
-  setAuth: (token: string, user: AuthState['user']) => void;
-  clearAuth: () => void;
-  refreshToken: () => Promise<void>;
-  isTokenExpired: () => boolean;
+setAuth: (token: string, user: AuthState['user']) => void;
+clearAuth: () => void;
+refreshToken: () => Promise<void>;
+isTokenExpired: () => boolean;
 }
 
 const useAuthStore = create<AuthStore>()(
-  persist(
+persist(
     (set, get) => ({
-      token: null,
-      user: null,
-      isAuthenticated: false,
-      setAuth: (token, user) => {
+    token: null,
+    user: null,
+    isAuthenticated: false,
+    setAuth: (token, user) => {
         set({ token, user, isAuthenticated: true });
-      },
-      clearAuth: () => set({ token: null, user: null, isAuthenticated: false }),
-      refreshToken: async () => {
+    },
+    clearAuth: () => set({ token: null, user: null, isAuthenticated: false }),
+    refreshToken: async () => {
         const currentToken = get().token;
         if (!currentToken) throw new Error('No token available');
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`, {
             method: 'POST',
             headers: {
+              'Content-Type': 'application/json',
               Authorization: `Bearer ${currentToken}`,
             },
-          });
-          if (!response.ok) {
+            body: JSON.stringify({ refreshToken: currentToken })
+        });
+        if (!response.ok) {
             get().clearAuth();
             throw new Error('Failed to refresh token, logging out');
-          }
-          const data = await response.json();
-          set({ token: data.accessToken });
-        } catch (error) {
-          console.error('Error refreshing token:', error);
-          get().clearAuth();
-          throw error;
         }
-      },
-      isTokenExpired: () => {
+        const data = await response.json();
+        set({ token: data.accessToken });
+        } catch (error) {
+        console.error('Error refreshing token:', error);
+        get().clearAuth();
+        throw error;
+        }
+    },
+    isTokenExpired: () => {
         const token = get().token;
         if (!token) return true;
         try {
-          const decoded: { exp: number } = jwtDecode(token);
-          return decoded.exp * 1000 < Date.now();
+        const decoded: { exp: number } = jwtDecode(token);
+        return decoded.exp * 1000 < Date.now();
         } catch (error) {
-          console.error('Error decoding token:', error);
-          return true;
+        console.error('Error decoding token:', error);
+        return true;
         }
-      },
+    },
     }),
     {
-      name: 'auth-storage',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ token: state.token }),
+    name: 'auth-storage',
+    storage: createJSONStorage(() => localStorage),
+     partialize: (state) => ({ token: state.token, user: state.user, isAuthenticated: state.isAuthenticated}),
     }
-  )
+)
 );
 
 export const useAuth = () => {
-  const store = useAuthStore();
-  return {
+const store = useAuthStore();
+return {
     ...store,
     login: store.setAuth,
     logout: store.clearAuth,
-  };
+};
 };
 
 export const useAuthToken = () => useAuthStore((state) => state.token);
