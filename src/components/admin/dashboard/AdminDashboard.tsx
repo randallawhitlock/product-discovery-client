@@ -45,7 +45,7 @@ const AdminDashboard: React.FC = () => {
 
   if (blogPostsError || productsError || usersError) {
     return (
-      <div>
+      <div data-testid="error-message">
         Error:{' '}
         {(blogPostsError || productsError || usersError)?.message?.toString() ||
           'Unknown error'}

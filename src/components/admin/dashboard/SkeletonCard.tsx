@@ -2,7 +2,9 @@ import ContentLoader from 'react-content-loader';
 
 const SkeletonCard = () => {
   return (
-    <div className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg p-6 shadow-md">
+    <div data-testid="skeleton-card"
+    className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg p-6 shadow-md"
+    > 
       <ContentLoader
         height={80}
         width="100%"

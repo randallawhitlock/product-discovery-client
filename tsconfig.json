@@ -56,7 +56,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "src/__tests__/**/*"
 , "tailwind.config.mjs"  ],
   "exclude": [
     "node_modules"

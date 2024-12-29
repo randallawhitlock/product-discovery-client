@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@zod/resolver';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   AlertDialog,
@@ -74,7 +74,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ initialData, onSubmit }) =>
         {errors.title && (
           <AlertDialog>
             <AlertDialogContent>
-              <AlertDialogTitle>Error</AlertDialogTitle>
+              <AlertDialogTitle data-testid="title-error">Error</AlertDialogTitle>
               <AlertDialogDescription>{errors.title.message}</AlertDialogDescription>
               <AlertDialogFooter>
                 <AlertDialogCancel>Ok</AlertDialogCancel>
@@ -107,7 +107,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ initialData, onSubmit }) =>
         {errors.content && (
           <AlertDialog>
             <AlertDialogContent>
-              <AlertDialogTitle>Error</AlertDialogTitle>
+              <AlertDialogTitle data-testid="title-error">Error</AlertDialogTitle>
               <AlertDialogDescription>{errors.content.message}</AlertDialogDescription>
               <AlertDialogFooter>
                 <AlertDialogCancel>Ok</AlertDialogCancel>
@@ -140,7 +140,7 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({ initialData, onSubmit }) =>
         {errors.summary && (
           <AlertDialog>
             <AlertDialogContent>
-              <AlertDialogTitle>Error</AlertDialogTitle>
+              <AlertDialogTitle data-testid="title-error">Error</AlertDialogTitle>
               <AlertDialogDescription>{errors.summary.message}</AlertDialogDescription>
               <AlertDialogFooter>
                 <AlertDialogCancel>Ok</AlertDialogCancel>
